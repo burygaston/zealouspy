@@ -1,4 +1,7 @@
-"""Flaky test demonstration - these tests intentionally have non-deterministic behavior."""
+"""Flaky test demonstration - these tests intentionally have non-deterministic behavior.
+
+This module contains tests that will randomly pass or fail to demonstrate CI flake detection.
+"""
 
 import pytest
 import random
