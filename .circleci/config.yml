@@ -13,7 +13,10 @@ jobs:
             pip install -e .
       - run:
           name: Run tests
-          command: pytest
+          command: |
+            pip install pytest
+            pytest --version
+            pytest
 
 workflows:
   version: 2
