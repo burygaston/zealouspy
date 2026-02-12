@@ -1,4 +1,8 @@
-"""Validation utilities - PARTIALLY TESTED."""
+"""Validation utilities for common data formats and business rules.
+
+Provides validation functions for emails, URLs, passwords, phone numbers,
+usernames, and date ranges.
+"""
 
 import re
 from datetime import datetime
@@ -6,7 +10,17 @@ from typing import Optional, Tuple
 
 
 def validate_email(email: str) -> bool:
-    """Validate email format."""
+    """Validate email address format.
+
+    Uses a regex pattern that matches most common email formats. Does not
+    validate that the email address actually exists.
+
+    Args:
+        email: Email address string to validate.
+
+    Returns:
+        True if the email format is valid, False otherwise.
+    """
     if not email or not isinstance(email, str):
         return False
 
@@ -15,7 +29,16 @@ def validate_email(email: str) -> bool:
 
 
 def validate_url(url: str) -> bool:
-    """Validate URL format - NOT TESTED."""
+    """Validate URL format.
+
+    Checks for http:// or https:// protocol and basic URL structure.
+
+    Args:
+        url: URL string to validate.
+
+    Returns:
+        True if the URL format is valid, False otherwise.
+    """
     if not url or not isinstance(url, str):
         return False
 
@@ -27,7 +50,19 @@ def validate_date_range(
     start_date: Optional[datetime],
     end_date: Optional[datetime],
 ) -> Tuple[bool, Optional[str]]:
-    """Validate date range - NOT TESTED."""
+    """Validate that a date range is logically consistent.
+
+    Checks that:
+    - Start date comes before end date
+    - End date is not in the past
+
+    Args:
+        start_date: Optional start date of the range.
+        end_date: Optional end date of the range.
+
+    Returns:
+        Tuple of (is_valid, error_message). error_message is None if valid.
+    """
     if start_date is None and end_date is None:
         return True, None
 
@@ -42,7 +77,21 @@ def validate_date_range(
 
 
 def validate_password_strength(password: str) -> Tuple[bool, Optional[str]]:
-    """Validate password strength - NOT TESTED."""
+    """Validate password meets security requirements.
+
+    Requirements:
+    - At least 8 characters long
+    - Contains at least one uppercase letter
+    - Contains at least one lowercase letter
+    - Contains at least one digit
+    - Contains at least one special character
+
+    Args:
+        password: Password string to validate.
+
+    Returns:
+        Tuple of (is_valid, error_message). error_message is None if valid.
+    """
     if len(password) < 8:
         return False, "Password must be at least 8 characters"
 
@@ -62,7 +111,18 @@ def validate_password_strength(password: str) -> Tuple[bool, Optional[str]]:
 
 
 def validate_phone_number(phone: str) -> bool:
-    """Validate phone number format - NOT TESTED."""
+    """Validate phone number format.
+
+    Accepts various phone number formats with optional country code. Removes
+    common formatting characters (spaces, dashes, parentheses, dots) before
+    validation.
+
+    Args:
+        phone: Phone number string to validate.
+
+    Returns:
+        True if the phone number format is valid (10-15 digits), False otherwise.
+    """
     if not phone or not isinstance(phone, str):
         return False
 
@@ -75,7 +135,19 @@ def validate_phone_number(phone: str) -> bool:
 
 
 def validate_username(username: str) -> Tuple[bool, Optional[str]]:
-    """Validate username - NOT TESTED."""
+    """Validate username meets requirements.
+
+    Requirements:
+    - 3-30 characters long
+    - Must start with a letter
+    - Can only contain letters, numbers, and underscores
+
+    Args:
+        username: Username string to validate.
+
+    Returns:
+        Tuple of (is_valid, error_message). error_message is None if valid.
+    """
     if not username or not isinstance(username, str):
         return False, "Username is required"
 

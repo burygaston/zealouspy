@@ -1,11 +1,31 @@
-"""Formatting utilities - MOSTLY UNTESTED."""
+"""Formatting utilities for displaying data in human-readable formats.
+
+Provides functions to format durations, currencies, percentages, file sizes,
+numbers, and text truncation.
+"""
 
 from datetime import timedelta
 from typing import Optional
 
 
 def format_duration(seconds: int) -> str:
-    """Format duration in human-readable format - TESTED."""
+    """Format duration in human-readable format.
+
+    Automatically selects appropriate units (seconds, minutes, hours, days)
+    and shows up to two levels of units for clarity.
+
+    Examples:
+        - 45 seconds -> "45s"
+        - 90 seconds -> "1m 30s"
+        - 3665 seconds -> "1h 1m"
+        - 86400 seconds -> "1d"
+
+    Args:
+        seconds: Duration in seconds (negative values return "0s").
+
+    Returns:
+        Human-readable duration string.
+    """
     if seconds < 0:
         return "0s"
 
@@ -38,7 +58,23 @@ def format_currency(
     currency: str = "USD",
     locale: str = "en_US",
 ) -> str:
-    """Format currency amount - NOT TESTED."""
+    """Format currency amount with appropriate symbol and decimal places.
+
+    Supports multiple currencies and locales with different formatting conventions.
+
+    Args:
+        amount: Monetary amount to format.
+        currency: Currency code (USD, EUR, GBP, JPY, INR).
+        locale: Locale string affecting number format (en_US, de_DE).
+
+    Returns:
+        Formatted currency string with symbol.
+
+    Examples:
+        - format_currency(1234.56, "USD") -> "$1,234.56"
+        - format_currency(1234.56, "EUR", "de_DE") -> "1.234,56 €"
+        - format_currency(1234, "JPY") -> "¥1,234"
+    """
     symbols = {
         "USD": "$",
         "EUR": "€",
@@ -66,7 +102,21 @@ def format_percentage(
     decimal_places: int = 1,
     include_sign: bool = False,
 ) -> str:
-    """Format percentage - NOT TESTED."""
+    """Format a percentage value.
+
+    Args:
+        value: Percentage value (e.g., 25.5 for 25.5%).
+        decimal_places: Number of decimal places to show (default: 1).
+        include_sign: Whether to include '+' for positive values (default: False).
+
+    Returns:
+        Formatted percentage string.
+
+    Examples:
+        - format_percentage(25.5) -> "25.5%"
+        - format_percentage(25.5, decimal_places=0) -> "26%"
+        - format_percentage(25.5, include_sign=True) -> "+25.5%"
+    """
     formatted = f"{value:.{decimal_places}f}%"
 
     if include_sign and value > 0:
@@ -76,7 +126,22 @@ def format_percentage(
 
 
 def format_file_size(bytes_size: int) -> str:
-    """Format file size in human-readable format - NOT TESTED."""
+    """Format file size in human-readable format with appropriate units.
+
+    Automatically selects the best unit (B, KB, MB, GB, TB, PB) to display
+    the size concisely.
+
+    Args:
+        bytes_size: File size in bytes (negative values return "0 B").
+
+    Returns:
+        Human-readable file size string.
+
+    Examples:
+        - format_file_size(1024) -> "1.00 KB"
+        - format_file_size(1536) -> "1.50 KB"
+        - format_file_size(1048576) -> "1.00 MB"
+    """
     if bytes_size < 0:
         return "0 B"
 
@@ -98,7 +163,20 @@ def format_number(
     value: int,
     abbreviate: bool = False,
 ) -> str:
-    """Format large numbers - NOT TESTED."""
+    """Format large numbers with thousands separators or abbreviations.
+
+    Args:
+        value: Integer value to format.
+        abbreviate: Whether to use K/M/B abbreviations for large numbers.
+
+    Returns:
+        Formatted number string.
+
+    Examples:
+        - format_number(1234567) -> "1,234,567"
+        - format_number(1234567, abbreviate=True) -> "1.2M"
+        - format_number(1500, abbreviate=True) -> "1.5K"
+    """
     if not abbreviate:
         return f"{value:,}"
 
@@ -113,7 +191,21 @@ def format_number(
 
 
 def format_timedelta(delta: timedelta) -> str:
-    """Format timedelta in human-readable format - NOT TESTED."""
+    """Format a timedelta object in human-readable format.
+
+    Shows all non-zero time components with proper pluralization.
+
+    Args:
+        delta: timedelta object to format (negative values return "0 seconds").
+
+    Returns:
+        Human-readable duration string with comma-separated components.
+
+    Examples:
+        - timedelta(seconds=45) -> "45 seconds"
+        - timedelta(hours=2, minutes=30) -> "2 hours, 30 minutes"
+        - timedelta(days=1, hours=3) -> "1 day, 3 hours"
+    """
     total_seconds = int(delta.total_seconds())
 
     if total_seconds < 0:
@@ -138,7 +230,21 @@ def format_timedelta(delta: timedelta) -> str:
 
 
 def truncate_text(text: str, max_length: int, suffix: str = "...") -> str:
-    """Truncate text to max length - NOT TESTED."""
+    """Truncate text to a maximum length with optional suffix.
+
+    Args:
+        text: Text string to truncate.
+        max_length: Maximum length including suffix.
+        suffix: String to append when truncating (default: "...").
+
+    Returns:
+        Original text if within max_length, otherwise truncated text with suffix.
+
+    Examples:
+        - truncate_text("Hello World", 20) -> "Hello World"
+        - truncate_text("Hello World", 8) -> "Hello..."
+        - truncate_text("Hello World", 8, ">>") -> "Hello >>"
+    """
     if len(text) <= max_length:
         return text
 

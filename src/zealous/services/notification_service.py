@@ -6,81 +6,193 @@ import asyncio
 
 
 class NotificationChannel:
-    """Base notification channel."""
+    """Abstract base class for notification delivery channels.
+
+    Subclasses must implement the send method to handle their specific
+    delivery mechanism (email, SMS, Slack, etc.).
+    """
 
     async def send(self, recipient: str, subject: str, body: str) -> bool:
-        """Send notification."""
+        """Send a notification through this channel.
+
+        Args:
+            recipient: Destination identifier (email address, phone number, etc.).
+            subject: Notification subject/title.
+            body: Notification message content.
+
+        Returns:
+            True if the notification was sent successfully, False otherwise.
+
+        Raises:
+            NotImplementedError: Must be implemented by subclasses.
+        """
         raise NotImplementedError
 
 
 class EmailChannel(NotificationChannel):
-    """Email notification channel."""
+    """Email notification channel using SMTP.
+
+    Attributes:
+        smtp_host: SMTP server hostname.
+        smtp_port: SMTP server port.
+        username: SMTP authentication username.
+        password: SMTP authentication password.
+    """
 
     def __init__(self, smtp_host: str, smtp_port: int, username: str, password: str):
+        """Initialize the email channel with SMTP configuration.
+
+        Args:
+            smtp_host: SMTP server hostname.
+            smtp_port: SMTP server port.
+            username: SMTP authentication username.
+            password: SMTP authentication password.
+        """
         self.smtp_host = smtp_host
         self.smtp_port = smtp_port
         self.username = username
         self.password = password
 
     async def send(self, recipient: str, subject: str, body: str) -> bool:
-        """Send email notification."""
+        """Send an email notification.
+
+        Args:
+            recipient: Email address to send to.
+            subject: Email subject line.
+            body: Email body content.
+
+        Returns:
+            True if email was sent successfully.
+        """
         # Simulate email sending
         await asyncio.sleep(0.1)
         return True
 
 
 class SlackChannel(NotificationChannel):
-    """Slack notification channel."""
+    """Slack notification channel using webhooks.
+
+    Attributes:
+        webhook_url: Slack webhook URL for posting messages.
+    """
 
     def __init__(self, webhook_url: str):
+        """Initialize the Slack channel with webhook configuration.
+
+        Args:
+            webhook_url: Slack webhook URL for posting messages.
+        """
         self.webhook_url = webhook_url
 
     async def send(self, recipient: str, subject: str, body: str) -> bool:
-        """Send Slack notification."""
+        """Send a Slack notification via webhook.
+
+        Args:
+            recipient: Slack channel or user identifier.
+            subject: Message title.
+            body: Message content.
+
+        Returns:
+            True if message was posted successfully.
+        """
         # Simulate Slack API call
         await asyncio.sleep(0.05)
         return True
 
 
 class SMSChannel(NotificationChannel):
-    """SMS notification channel."""
+    """SMS notification channel using SMS API.
+
+    Attributes:
+        api_key: API key for SMS service authentication.
+        from_number: Phone number to send messages from.
+    """
 
     def __init__(self, api_key: str, from_number: str):
+        """Initialize the SMS channel with API configuration.
+
+        Args:
+            api_key: API key for SMS service authentication.
+            from_number: Phone number to send messages from.
+        """
         self.api_key = api_key
         self.from_number = from_number
 
     async def send(self, recipient: str, subject: str, body: str) -> bool:
-        """Send SMS notification."""
+        """Send an SMS notification.
+
+        Args:
+            recipient: Phone number to send to.
+            subject: Message subject (may be ignored depending on SMS provider).
+            body: SMS message content.
+
+        Returns:
+            True if SMS was sent successfully.
+        """
         # Simulate SMS API call
         await asyncio.sleep(0.2)
         return True
 
 
 class NotificationService:
-    """Service for sending notifications across multiple channels."""
+    """Multi-channel notification service with user preferences and history.
+
+    Manages notification delivery across multiple channels (email, SMS, Slack, etc.)
+    with user-specific preferences, delivery tracking, and statistics.
+
+    Attributes:
+        _channels: Dictionary of registered notification channels by name.
+        _notification_history: List of all sent notifications with results.
+        _preferences: User-specific channel preferences.
+    """
 
     def __init__(self):
+        """Initialize the notification service with empty state."""
         self._channels: Dict[str, NotificationChannel] = {}
         self._notification_history: List[Dict] = []
         self._preferences: Dict[str, List[str]] = {}
 
     def register_channel(self, name: str, channel: NotificationChannel) -> None:
-        """Register a notification channel."""
+        """Register a notification channel for use by the service.
+
+        Args:
+            name: Unique identifier for the channel (e.g., "email", "slack").
+            channel: NotificationChannel instance to register.
+        """
         self._channels[name] = channel
 
     def unregister_channel(self, name: str) -> bool:
-        """Unregister a notification channel."""
+        """Remove a notification channel from the service.
+
+        Args:
+            name: Identifier of the channel to unregister.
+
+        Returns:
+            True if the channel was found and removed, False otherwise.
+        """
         if name in self._channels:
             del self._channels[name]
             return True
         return False
 
     def set_user_preferences(self, user_id: str, channels: List[str]) -> None:
-        """Set user notification preferences."""
+        """Set which notification channels a user wants to receive notifications on.
+
+        Args:
+            user_id: Unique identifier for the user.
+            channels: List of channel names the user wants to use.
+        """
         self._preferences[user_id] = channels
 
     def get_user_preferences(self, user_id: str) -> List[str]:
-        """Get user notification preferences."""
+        """Get a user's preferred notification channels.
+
+        Args:
+            user_id: Unique identifier for the user.
+
+        Returns:
+            List of channel names, defaults to ["email"] if not set.
+        """
         return self._preferences.get(user_id, ["email"])
 
     async def send_notification(
@@ -91,7 +203,22 @@ class NotificationService:
         recipient: str,
         channels: Optional[List[str]] = None,
     ) -> Dict[str, bool]:
-        """Send notification to user via preferred channels."""
+        """Send a notification to a user via one or more channels.
+
+        Uses the user's preferred channels if none are specified. Logs all
+        delivery attempts to notification history.
+
+        Args:
+            user_id: Unique identifier for the user.
+            subject: Notification subject/title.
+            body: Notification message content.
+            recipient: Delivery address (email, phone, etc.).
+            channels: Optional list of specific channels to use, defaults to
+                user preferences if not provided.
+
+        Returns:
+            Dictionary mapping each channel name to True (success) or False (failure).
+        """
         if channels is None:
             channels = self.get_user_preferences(user_id)
 
@@ -126,7 +253,18 @@ class NotificationService:
         body: str,
         recipients: Dict[str, str],
     ) -> Dict[str, Dict[str, bool]]:
-        """Send notification to multiple users."""
+        """Send the same notification to multiple users.
+
+        Args:
+            user_ids: List of user IDs to send notifications to.
+            subject: Notification subject/title.
+            body: Notification message content.
+            recipients: Dictionary mapping user IDs to their delivery addresses.
+
+        Returns:
+            Dictionary mapping each user_id to their delivery results (dict of
+            channel names to success/failure booleans).
+        """
         results = {}
         tasks = []
 
@@ -146,14 +284,28 @@ class NotificationService:
         user_id: Optional[str] = None,
         limit: int = 100,
     ) -> List[Dict]:
-        """Get notification history."""
+        """Retrieve notification history, optionally filtered by user.
+
+        Args:
+            user_id: Optional user ID to filter history to a specific user.
+            limit: Maximum number of history entries to return (default: 100).
+
+        Returns:
+            List of notification history dictionaries, most recent last.
+        """
         history = self._notification_history
         if user_id:
             history = [n for n in history if n["user_id"] == user_id]
         return history[-limit:]
 
     def get_delivery_stats(self) -> Dict[str, Dict[str, int]]:
-        """Get notification delivery statistics."""
+        """Calculate delivery statistics across all channels.
+
+        Returns:
+            Dictionary mapping channel names to their stats:
+                - sent: Number of successful deliveries
+                - failed: Number of failed deliveries
+        """
         stats: Dict[str, Dict[str, int]] = {}
 
         for notification in self._notification_history:
@@ -173,7 +325,18 @@ class NotificationService:
         task_title: str,
         assigner_name: str,
     ) -> bool:
-        """Send task assignment notification."""
+        """Send a notification when a task is assigned to a user.
+
+        Convenience method for the common task assignment notification pattern.
+
+        Args:
+            assignee_email: Email address of the user being assigned the task.
+            task_title: Title of the task being assigned.
+            assigner_name: Name of the person who assigned the task.
+
+        Returns:
+            True if at least one channel delivered successfully, False otherwise.
+        """
         subject = f"New Task Assigned: {task_title}"
         body = f"You have been assigned a new task by {assigner_name}: {task_title}"
         results = await self.send_notification(
@@ -190,7 +353,18 @@ class NotificationService:
         task_title: str,
         due_date: str,
     ) -> bool:
-        """Send task due date reminder."""
+        """Send a reminder notification for an upcoming task due date.
+
+        Convenience method for task due date reminders.
+
+        Args:
+            assignee_email: Email address of the task assignee.
+            task_title: Title of the task that's due soon.
+            due_date: Formatted due date string.
+
+        Returns:
+            True if at least one channel delivered successfully, False otherwise.
+        """
         subject = f"Task Due Soon: {task_title}"
         body = f"Your task '{task_title}' is due on {due_date}"
         results = await self.send_notification(
@@ -207,7 +381,19 @@ class NotificationService:
         project_name: str,
         update_message: str,
     ) -> int:
-        """Send project update to all members."""
+        """Broadcast a project update to all team members.
+
+        Convenience method for sending the same update to multiple project members.
+
+        Args:
+            member_emails: List of email addresses for project team members.
+            project_name: Name of the project being updated.
+            update_message: The update message to send.
+
+        Returns:
+            Number of users who received the notification successfully on at least
+            one channel.
+        """
         subject = f"Project Update: {project_name}"
         recipients = {email: email for email in member_emails}
         results = await self.send_bulk_notification(
